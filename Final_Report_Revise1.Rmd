@@ -1,0 +1,554 @@
+---
+title: "Data Mining Final Project Report"
+author: "Sophie Song(G38689625),Xiaofang Jiang(G33137378), Tianwe Ma(G49944026)"
+date: "3/25/2020"
+output: pdf_document
+---
+# Author of Contribution
+
+`Sophie Song:` Average Vote Score Exploration, Movie Recommendation Modeling, Report  
+`Xiaofang Jiang:` Data Wrangling, Report  
+`Tianwei Ma:` Revenue Prediction Modeling, Report  
+
+# 1.Introduction  
+
+Nowadays, movie is a thriving area. People at any age are willing to spend time or money on a movie they are interested in. Production companies are making profitable movies based on market's preference. Therefore, to identify a successful and profitable movie that fits the majority's preference is essential to a movie producers and production companies.The success of a movie reflected by its popularity, vote socre, vote count, and it's profitabiilty. A movie with high rating is definitely more welcomed and more lucrative. Thus, be able to predict a high rated movie provides valuable information to film producers or production companies to create lucrative and popular movies. Besides the rating score of a movie, does the movie is profitable is also important to those film producers and production companies.Using the TMDB(The movie database) data set, we can predict predict the vote score and predict the revenue for a given movie from investors' or producers' perspective. Specifically, in our model, we classify the result for revenue prediction as either profitable or not instead of predicting the specific value. Moreover, from an audiences' perspective, they would like to know more movies that fit their interest. Without knowing too much information about available movies and unable to determine whether they will like the movie or not, it's essential to provide movie recommendation to audiences. By using the TMDB data set we are able to provide movie recommendations. A movie title is provided, such that similar movie can be proposed.
+
+Our data contains information of over 4000 movies. Factors in the data set include "movie genres", "movie id", "movie keywords", "original language", "overview", "popularity", "production company", "release date", "revenue", "run time", "vote average score", "vote count". We will utilize different factors for analysis such that we can analyze problems from different perspectives.Our analysis will base on three problems. `1. Movie Recommendation` , `2. Predict the revenue for a given movie`, `3. Explore the factors affecting the average score for moives`. Before doing any analysis,we first wrangled the data in order to apply machine learning models in the future. The output for the wrangled data is not the final data fitted into models. Since each method might use different factors or require different data format, further data preprocessing is applied to the wrangled data before application of models.
+
+We applied k-modes clustering to accomplish the movie recommendation. To predict average vote score, we want to filter out the most related features to predict the final result. We first used simple linear regression, then we utlized the best select method for feature selection. For revenue prediction, we convert predicting the revenue value to classifying whether the movie is profitable or not by using logistic regression, QDA, LDA, KNN and SVM.In brief conclusion, we can provide average vote socre prediction and revenue prediction for movie producers or production companies with the lowest error rate. Also, we can help users finding more movies they might like by recommending new movies. Several data mining techniques are used to retrieve our final result.Final result is quiet favorable, although future improvement is needed.
+
+
+# 2.Data Wrangling 
+
+By first overviewing the data, we notice that varaible "genres" store multiple film genres for a movie into one data cell. For example, the genre for the first observation is: "[{"id": 28, "name": "Action"}, {"id": 12, "name": "Adventure"}, {"id": 14, "name": "Fantasy"}, {"id": 878, "name": "Science Fiction"}]".Since each genre might be a factor contributed to our result of average score prediction and movie genre classification, we need to extract all unique genres as new data columns. New columns for different movie genres are binary variables such that  1 means the movie belongs to the genre, 0 otherwise. 
+
+To extract all unique genres, regular expression is used to unlist the data by removing the outmost square bracket first.Such that one element is seprated into multiple elements inside a "{}". We need to extract the genre names after "name" for each movie to a new list. To do that, genre names are extracted by filtering out the word after $":"$ which is the genre name. Though there are two $":"$, one for id one for genre name, the number after id is not a word, so it will not be extracted. Therefore, all genre names are extracted to a new list. Then apply unique function to get unique genre names. At last, a list of 20 unique genre names is generated. According to the result, unique genres in this data set are "Science Fiction, Action, Crime, Thriller, Adventure, Family, Fantasy, Western, Comedy, Romance, Drama, War, Mystery, Animation, History, Horror, Music, Documentary, Foreign, TV Movie".
+
+After retrieving out the unique genre list, we can create new binary data columns based on each genre name. Each genre will be a new factor in the data set. Assign 1 to the genre column if the movie is defined as this genre, assign 0 otherwise. We save the wrangled data into a new csv file named "genres_out.csv".Our further analysis is fully based on this wrangled data file. 
+
+# 3.Problem of Interest   
+## 3.1 Movie Recommendation
+
+From an audiences' perspective, they will prefer movies sharing similar characteristics. Specifically, movies in the similar genres can fall into the same category with high probability.However, most people don't have enough information about all possible movies they might enjoy watching. What we can do is to provide recommendations based on a given movie. Such that users can know more movies they might like. 
+
+To provide movie recommendation we applied k-modes clustering to cluster all movies into different categories. We choose 20 to be the number of clusters, which is the same as the number of genres. The result can return movies fall into the same cluster. By providing a movie title, we can suggest other movies that user are highly likely to be prefer.
+
+### 3.1.1 Method
+### K-modes Clustering
+
+As a movie possesses multiple genres, it is hard for us to directly find movies with similar genres. We think clustering will be a good method to deal with this probelm. So we use K-modes Clustering Method to realize clustering. Compared with k-means clustering, K-modes Clustering Method uses modes, which are vectors of elements that minimizes the dissimilarities between the vector itself and each object of the data.K-modes will quantify the total mismatches between two objects: the smaller this number, the more similar the two objects. Unlike the centroids of K-means, the centroids of K-modes clustering is in the same form of the original data. So, it performs well for categorical variables. Therefore, it is a good technique for us to find similar movies based on genres. We choose the number of genres,20 as the number of clusters.
+
+In appendix, We have attached two clusters from the result. The first one has the highest mean popularity. In this cluster, we can observe the most three frequent genres: Science_Fiction, Adventrue and Action, which is also consistent with our common sense: the movies with those genres more easily get popular, as they often include many special effects and martial arts scenes.The second cluster we attached has the highest mean vote score. In this cluster, History, Action and drama make up the majority. Similarly, this is not beyound our cognition. These genres tend to be easier to obtain higher reviews.
+
+
+### 3.1.2 Result
+
+According to the result of clustering, we can recommend similar movies with high vote_scores if someone input some movies (this movies should be included in our data).For example, if input Avatar, our recommendation system will recommend following 5 movies: Howl's Moving Castle, Princess Mononoke,The Lord of the Rings: The Return of the King,The Lord of the Rings: The Fellowship of the Ring, and The Lord of the Rings: The Two Towers.            .
+
+
+## 3.2.Average vote score Exploration
+
+Movie companie's revenue does not just come from box office performance. If box office performance for a movie could cover most cost, it's highly possible that the production company can  make a decent amount of profit. In fact, a large amount of cash inflow for a movie comes from selling DVD, souvenirs and etc. However, not all movie's DVD and souvenir are popular. Review of a movie is an important factor affecting the selling of a movie's DVD or souvenir. The "average_vote score" in the data set is an appropriate measurement of the review situation. Therefore we will explore factors that will affect the average voting score. 
+
+For building model for the vote score, we will use all genre columns and each binary column stands for one feature for predicting the score. Besides,as the "original language" for the movie is also considered as a factor that affect the average score, we convert the "original language" column into categorical variable with 1 and 0 as well. At last, all genre columns,budget,runtime, vote_count and "orignial language" column are included for further analysis.We applied simple linear model at first, and 13 variables showed significant to the prediction result. In order to remove insignificant predictors correctly, we utilized the best select method to choose the optimal features included in the prediction model. According to the result, when 17 variables are included, the adjusted $R^2$ reaches the maximum. If 15 variables are included, CP value decreased to its minimum. When 11 features are included the BIC value decreased to its minimum. Since there is no absolute choice among maximum adjusted $R^2$, CP, and BIC, no best model can be conlucded easily. But we can use one of them,like the model derived from BIC, to observe the relationship between vote score and significant predictors.
+
+### 3.2.1.Method
+### Data Preprocessing
+
+In order to explore "average_vote scores" smoothly, we conduct following operations to clean the data further:  
+`1`. Although the data set has 35 prodictors, there are 20 variables illustrating movie genres (just as stated above). We keep those variables;  
+`2`. We remove the following variables:   
+
+    X:useless index   
+    genres:duplicates with splitted genres 
+    keywords:hard to use this texts for regression  
+    id:useless index;   
+    overview:hard to use this texts for regression
+    production_companies: hard to use this texts for regression  
+    status: almost all the movies have the same status  
+    title: hard to use this texts for regression
+    release_date: hard to use this date for regression
+
+`3`. As the original language of most movies is English, we transfer this variable to dummy variable. (English:1,others:0)  
+`4`. We Remove rows with missing value   
+`5`. We drop rows only with 100 voters or less 100 voters, because the vote scores will be much biased if the number of voters is too small  
+`6`. We normorlize continous variables, including budget, runtime and vote_count  
+
+In order to test the devloped model, we split data into train set and test set. We take 75% of total data as train set, and the remaing 25% are test set. We will train the model using train set and evaluate the model performance using test set.
+
+### Simple linear model
+
+At first, we build a simple linear regression model and train the model using train set. Following that we fit the test set into the model to get the test error. Based on the result, we have a training error of `0.611` for simple linear model. A test error of `0.327` is comparatively small.
+
+Although we fit the model using all predictors in the data set, not all varaibles have effect on predicting average vote score.According to the result, some regressors has a p-value larger than 0.05 such that they has barely no effect on the prediction of average vote score. Specifically, the following factors are not significant to average vote score: "Mystery1, Music1, Family1, Romance1, Fnatasy1, History1, Western1, War1, Tv Movie1".  Among remaining features, some are positively related to average vote score while others are negatively related to average vote score. But we cannot simply remove the insignificant predictors. Also, some problems, for example, overfitting and multilinearity, might be ignored. Thus, we will use other techniques to further explore the data.
+
+###  Best Subset Selection Method
+
+The best subset selection method is the best method to select features. The weakness of it is that if the data is too large, it is hard for this method to obtain result. Fortunately, our data is not very large, so we take advantage of best selection method to select features. There are three common measures to determine the most appropriate features included in the model: $R^2$, CP, BIC. In our project,there are 22 variables originally . If the number of varaibles decreased to 17, the adjusted $R^2$ increases to maximum. When the number of variables decreased to 15, CP decreased to minimum. If the number of varaibles reached 11, BIC decreased to minimum. Normally we will not use the result based on the adjusted $R^2$. And there is no absolute answer for the optimal choice between CP and BIC. Thus either 15 or 11 varaibles is a good choice for prediction model.
+
+
+### 3.2.2.Result
+
+In geneal, we can note that budget suprisely negatively affect the scores from the linear regression result. Normally, commercial movies have more budget since they can make profit by selling DVDs or souvenirs. If a movie company does not have enough budge to create special effects, it needs pay more attention to other fields, including the flow of the story, the progression of the plot or the editing approach. The runtime and vote_count are positively related with scores. If a movie company want to have a higher vote scores on a good-quality movie, it needs encourage more people to write reviews and try to extend the movie runtime. In terms of genres, Comedy, Action, Thriller, Horror are negatively affect the scores. The movie companies should be more cautious towards those genres. If a movies' genre is the combination of those negatively related genres, it's highly possible to have a low score. 
+On contrast, Animation,Crime and drama are positively related with average_vote scores. One of possible reasons is that the most audience are much younger,and they are more lenient with movies. The movie companies will shoulder less pressures when produce movies with these genre.
+
+## 3.3.Revenue Prediction   
+
+At first, we would like to predict box office performance, which is presented by "revenue" in the dataset. In reality, revenue of a movie can be affected by many factors. Besides budget and movie genre, box office performance may be related to advertising, reputation and popularity of crews, sequel and recomposition of a big IP, and some real-time information such as movie arranging rate, reviews from the first week, release date, and quality of other movies at the same time. Since we have limited information, we could not deliver a very accurate prediction on the revenue; therefore, based on given data, instead of predicting revenue level, we intend to predict whether a movie can make profits and worth being invested.
+
+For predicting the revenue, instead of predicting a specific value we choose to classify the prediction result as whether the movie will be profitable or not. It's hard to predict a specific revenue value as the data set is not large enough and factors are not comprehensive to provide an accurate prediction. The result for the revenue prediction will be a binary value of either 1 or 0 that identify whether the movie is profitable or not. We applied logistic regression, LDA, QDA, KNN and SVM approaches to classify the revenue.  
+
+The most satisfied results are from logistic regression, LDA, KNN where k is equal to 100 and SVM radial. The correction rate for all these four methods are around 0.59. Moreover, if investors care more about the risk of investing in non-profitable movies than make profits, which means it has to largely decrease the Type I error, therefore, we adjusted the threshold value to 0.55 with slight sacrifice of the overall error rate. Therefore, a production company can predict the profitability of a movie before investing.
+
+
+### 3.3.1.Method
+### Data Preprocessing
+
+Data preprocess is need before developing models. Values in "revenue" contain dollar signs, so we need to delete the $"\$"$ first and transform data type in "revenue" to numeric. Additionally, there are some invalid data points, which are 0, in "budget". So, all zero values in "budget" are dropped for higher prediction accuracy. There are 3229 observations left after the preprocessing.  We notice that there are over 30 classes of languages in "original language", but Non-English films make up only a small part of the data. So, we classify all Non-English in original language into one class, labelled "Nonen". 
+
+According to some research, we know that, to break even, a movie needs to make 2 times of its budget for domestic sales or 3 times of its budget for international sales. Thus, we decide to use a rate of 2.5 to determine whether a movie will be profitable. Precisely, if the revenue-budget-ratio is larger than 2.5, we believe the movie is profitable and label "YES" in "profit_level" (a new column in the dataset). If the revenue-budget-ratio is smaller or equal to 2.5, we believe the movie is not profitable and label "NO" in "profit_level". Finally, we normalize "budget" and "runtime" since skewed data may affect the model accuracy.
+
+Now, we select variables needed for our model. Based on the given dataset, we believe "budget", "official language", "runtime", and each genre of a movie may contribute to the profitability of a movie. We divided the whole dataset into training set and test set. We randomly selected 75% of data as training data and the remaining as test set. We will train the model using train set and evaluate the model performance using test set.
+
+### Logistic Regression  
+
+First, we perform logistic regression on the whole dataset. If a variable is statistically significant at the 90% CI (p>0.10), we include it in our final model. From the result, we concluded that 12 variables are significant, which are "budget", "runtime", "Science_Fiction", "Mystery", "Music", "Action, "Crime", "Fantasy", "Drama", "History", "Western" and "Horror". Then, we perform logistic regression on our training set using those 12 variables and calculate the accuracy based on our testing set. The overall correction rate is around `0.59` which is a relatively good result for dynamic investment market. Investor can have more confidence when making decision using this model to predict if a movie is profitable. Besides, we calculate the specificity, the type I error which is `0.31`. The value of 0.31 as type I error is quite small such that investors can avoid making bad investment decision in a certain level.
+
+### LDA Regression
+
+We also perform a LDA regression to see whether an alternative model has higher accuracy. According to the result, the overall correction rate is `0.59`, which is the similar to the logistic regression.
+
+### QDA Regression
+
+Further, we perform a QDA regression. Based on the result, the overall correction rate is around `0.57`, which is smaller than the logistic regression and the LDA regression.
+
+### KNN Regression
+
+Besides, we perform KNN with several values of K. When k=1, the correction
+rate is around `0.54`; When k=10, the correction rate is around `0.58`; When k=100, the correction rate is around `0.59`. We can see that as K increases, which means the model is much simpler, the correction rate increases. And, when k is equal to 100, the correction rate is same as logistic regression and LDA.
+
+### SVM Regression
+
+Moreover, we perform SVMs with linear, radial and polynomial basis kernels, with different values of gamma and degree and cost. When the kernel is linear, under the best performance, the correction rate is `0.58`; When the kernel is radial, under the best performance, the correction rate is `0.59`; When the kernel is polynomial, under the best performance, the correction rate is `0.58`. Under different kernels, SVM radial performs the best results and it’s similar to the correction rates of logistic regression, LDA and KNN (k = 100).
+
+
+### 3.3.2.Result
+
+Therefore, logistic regression, LDA, KNN (k = 100) and SVM radial have similar performance with error rate close to 0.6, which are better than that of other models. We can choose model from these three models. However, the assumption of using LDA and QDA is that our data is generated from a mixture of Gaussian distributions. Since we include many genres in our model, which means we have many binary variables, so we are not sure whether data still follow Gaussian distributions. If it doesn’t satisfy these assumptions, it may not be appropriate to use LDA to predict profitable level. Moreover, some investors prefer lower risk on making a decision. We can adjust specificity by increasing or decreasing threshold value. Therefore, finally we choose logistic regression to do prediction since it is not only the best model which has the highest correction rate on test set but also able to adjust the threshold value. To decrease the specificity, we can slightly increase the threshold value to 0.55 in logistic regression. Although it leads to a 2% decrease in overall correction rate, the type I error can be largely reduced. We reached the over correction rate of 0.57 and with a much smaller type I error rate of only 0.14. This way, we can provide more confidential suggestions to investors to avoid investing in non-profitable movies.
+
+# 4.Conclusion  
+
+After utilizing k-modes clustering to achieve movie recommendation to users, the recommended result is reasonable. We used `Avatar` as the example to find suggested movies. As a result, Howl's Moving Castle, The Empire Strikes Back, Princess Mononoke, The Lord of the Rings: The Return of the King, Star Wars are recommended. Though it's hard to test the accuracy of our recommendations, recommended movies share most characteristics with `Avatar` such that it's hard to conclude our recommendations are unqualified. If future improvement on modeling or data can be achieved, our recommnedations can be more perfect. 
+
+Moreover, quantitative prediction on average vote score and movies' revenue obtain, to some degree, a high accuracy. We filtered out most related features included in prediction models to acheive higher accuracy. Also, different models are applied to compare the most optimal model for our data set. Through various testing and comparison, we concluded that for average vote score prediction, either 15 variables or 11 variables is a reasonable choice for our prediciton model.
+
+Further, to classify a movie is profitable or not, we used logistic regression, LDA, QDA, KNN and SVM approaches. Logistic regression, LDA and KNN (k = 100) have better performance on their accuracy rate. To improve the performance, we decreased the type I error to miminum by slight sacrifice of the overall correction rate. Eventually, our model achieves the accuracy of 0.57 for predicting whether a movie is profitable or not. The overall accuracy of 0.57 is not bad, however, future improvement is needed. 
+
+
+# 5.Possible Improvement  
+
+## 5.1.Data  
+
+`1.` This project we encountered big challenge on data wrangling. For several data columns that contain string values has compound data format such that one data cell store multiple information about the observation. In order to apply machine learning models, we extract out all genre names from the genre column to find all unique movive genres. If the data source is more concised or more straightforward, we can save time on data cleaning. 
+
+`2.` If the TMDB data base can keep updating their data, then we can have most up to date prediction and recommendations. Most importantly, we can increase prediction accuracy by testing our model using most recent data. Movie industry and people's interests keep changing. Thus most updated data is essential to an accuracte prediction model.
+
+## 5.1. Model
+
+`3.` Because of the restriction of data set, model selections are limited. Also, we are lack of information about all data mining or machine learning techniques. Such that it's hard to find the most appropriate model we can use. Those data mining techniques we used so far might not be a perfect fit of the data set. Therefore, comprehensive understanding and knolwedge about machine learning or data mining technique can improve the overall accuracy for our prediction.
+
+# Appendix
+
+## Data Wrangling 
+```{r,message=FALSE,echo=FALSE}
+library(data.table)
+library(tidyverse)
+data <- read.csv("data.csv")
+
+paste("Data Overview")
+str(data)
+
+data$genres = gsub("\\[|\\]", "", data$genres)
+
+genres_df= data$genres 
+genres_df = data.frame(gsub("\\[|\\]", "", genres_df))
+names(genres_df) <- c("genres")
+
+new_genres = sub(".*:", "", genres_df$genres)
+all_genres = unique(new_genres)
+paste("Extracted all unique genres")
+all_genres
+
+genres_df$Science_Fiction <- sapply(1:length(genres_df$genres), function(x) if (genres_df[x,1] %like% "Science Fiction") 1 else 0)
+genres_df$Adventure <- sapply(1:length(genres_df$genres), function(x) if (genres_df[x,1] %like% "Adventure") 1 else 0)
+genres_df$Comedy <- sapply(1:length(genres_df$genres), function(x) if (genres_df[x,1] %like% "Comedy") 1 else 0)
+genres_df$Mystery <- sapply(1:length(genres_df$genres), function(x) if (genres_df[x,1] %like% "Mystery") 1 else 0)
+genres_df$Music <- sapply(1:length(genres_df$genres), function(x) if (genres_df[x,1] %like% "Music") 1 else 0)
+
+genres_df$Action <- sapply(1:length(genres_df$genres), function(x) if (genres_df[x,1] %like% "Action") 1 else 0)
+genres_df$Family <- sapply(1:length(genres_df$genres), function(x) if (genres_df[x,1] %like% "Family") 1 else 0)
+genres_df$Romance <- sapply(1:length(genres_df$genres), function(x) if (genres_df[x,1] %like% "Romance") 1 else 0)
+genres_df$Animation <- sapply(1:length(genres_df$genres), function(x) if (genres_df[x,1] %like% "Animation") 1 else 0)
+genres_df$Documentary <- sapply(1:length(genres_df$genres), function(x) if (genres_df[x,1] %like% "Documentray") 1 else 0)
+
+genres_df$Crime <- sapply(1:length(genres_df$genres), function(x) if (genres_df[x,1] %like% "Crime") 1 else 0)
+genres_df$Fantasy <- sapply(1:length(genres_df$genres), function(x) if (genres_df[x,1] %like% "Fantasy") 1 else 0)
+genres_df$Drama <- sapply(1:length(genres_df$genres), function(x) if (genres_df[x,1] %like% "Drama") 1 else 0)
+genres_df$History <- sapply(1:length(genres_df$genres), function(x) if (genres_df[x,1] %like% "History") 1 else 0)
+genres_df$Foreign <- sapply(1:length(genres_df$genres), function(x) if (genres_df[x,1] %like% "Foreign") 1 else 0)
+
+genres_df$Thriller <- sapply(1:length(genres_df$genres), function(x) if (genres_df[x,1] %like% "Thriller") 1 else 0)
+genres_df$Western <- sapply(1:length(genres_df$genres), function(x) if (genres_df[x,1] %like% "Western") 1 else 0)
+genres_df$War <- sapply(1:length(genres_df$genres), function(x) if (genres_df[x,1] %like% "War") 1 else 0)
+genres_df$Horror <- sapply(1:length(genres_df$genres), function(x) if (genres_df[x,1] %like% "Horror") 1 else 0)
+genres_df$TV_Movie <- sapply(1:length(genres_df$genres), function(x) if (genres_df[x,1] %like% "TV Movie") 1 else 0)
+
+genres_df = subset(genres_df, select = -c(genres))
+df <- cbind(data,genres_df)
+write.csv(df,"genres_out.csv")
+paste("The new data file 'genres_out.csv' is being saved ...")
+```
+
+## Problem Of Interest I. Movie Recommendation
+### K-modes Clustering
+
+```{r,echo=FALSE,message=FALSE}
+library('klaR')
+df_unsup1 <- read.csv('genres_out.csv')
+df_unsup1 <- df_unsup1[order(-df_unsup1$vote_average),]
+df_unsup2 <- df_unsup1[,c(14,17:36)]
+
+set.seed(1)
+km <- kmodes(df_unsup2[2:21],20,iter.max=100)
+cluster <- km$cluster
+type1 <- df_unsup1[cluster == 1,]
+```
+
+```{r,echo=FALSE}
+type <- list()
+for(k in 1:20) 
+{
+type[[paste0("k.", k)]] <- df_unsup1[cluster == k,]
+}
+
+mean_pop <- list()
+count <- 1
+for (i in type){
+  mean_pop[[paste0("i.",count)]] <- mean(i[,'popularity'])
+  count <- count + 1
+}
+#print(which.max(mean_pop)[[1]])
+most_pop <- type$k.15[,c(17:36)]
+colSums(most_pop)
+
+```
+
+```{r,echo=FALSE}
+mean_vote <- list()
+count1 <- 1
+for (i in type){
+  mean_vote[[paste0("i.",count1)]] <- mean(i[,'vote_average'])
+  count1 <- count1 + 1
+}
+#print(which.max(mean_vote)[[1]])
+most_vote <- type$k.12[,c(17:36)]
+colSums(most_vote)
+```
+
+```{r,echo=FALSE}
+recommendation <- function(movie){
+  index = which(df_unsup1$title == movie)
+  cluster_type = cluster[index]
+  head(type[[cluster_type]],5)$title
+}
+```
+
+```{r}
+recommendation('Avatar')
+```
+
+## Problem Of Interest II. Average vote prediction
+
+### Data Preprocessing 
+```{r,echo=FALSE,message=FALSE}
+library(tidyverse)
+df <- read.csv('genres_out.csv')
+print.noquote(paste('Number of rows:',dim(df)[1],', Number of columns:',dim(df)[2]))
+
+#remove unecessary columns
+df1 <- subset(df,select=-c(X,genres,keywords,id,overview,production_companies,status,revenue, release_date,title,popularity))
+
+df1$original_language <- ifelse(df1$original_language == 'en',1,0) #transfer original_language to dummy variable (English:1,others:0)
+
+df2 <-  df1 %>% filter(vote_count > 100) #keep rows with voter larger than 100
+df2 <- subset(df2,select=-c(Documentary,Foreign)) #At this moment, all left movies are not documentory or foreign, so remove them
+
+df3 <- df2
+df3 <- na.omit(df3)
+#normalize continous variables
+df3$budget <- scale(df3$budget)
+df3$runtime <- scale(df3$runtime)
+df3$vote_count <- scale(df3$vote_count)
+
+#treat dummy varibles as factor
+cols <- c("original_language","Science_Fiction","Adventure","Comedy","Mystery","Music", "Action","Family","Romance","Animation","Crime","Fantasy","Drama","History","Thriller","Western","War","Horror", "TV_Movie")
+for (i in cols){
+  df3[,i] = as.factor(df3[,i])
+}
+df3 <- df3[,c(1,2,3,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,4)]
+
+print.noquote("Some rows of cleaned data showed below:")
+head(df3)
+
+#divide data into to training data (75%) and testing data(25%)
+set.seed(123)
+sample_num <- sample(dim(df3)[1],dim(df3)[1]*0.75,replace=FALSE)
+training_data <- df3[sample_num,]
+testing_data <- df3[-sample_num,]
+
+print.noquote(paste('Number of rows for training:',dim(training_data)[1],', Number of columns for training:',dim(training_data)[2]))
+print.noquote(paste('Number of rows for testing:',dim(testing_data)[1],', Number of columns for testing:',dim(testing_data)[2]))
+```
+
+### Simple Linear Model
+```{r,echo=FALSE}
+set.seed(123)
+lm1 <- lm(vote_average~.,data=training_data)
+
+print.noquote("The summary information is showed below:")
+summary(lm1)
+
+testing_data1 <- subset(testing_data,select=-vote_average)
+testing_data2 <- testing_data[,'vote_average']
+#predict using test data
+lm1.pred <- predict(lm1,testing_data1)
+cat('\n')
+
+#MSE
+error <- mean((lm1.pred - testing_data2)^2)
+print.noquote(paste("The test error is",error))
+```
+
+###  Best Select Method
+```{r,echo=FALSE}
+library(leaps)
+lm1.full <- regsubsets(vote_average~.,data=df3,nvmax=22)
+lm1.summary <- summary(lm1.full)
+
+par(mfrow=c(2,2))
+plot(lm1.summary$rss,xlab="Number of variables",ylab="RSS",type="l")
+plot(lm1.summary$adjr2,xlab="Number of variables",ylab="Adjusted R^2",type="l")
+max1 <- which.max(lm1.summary$adjr2)
+points(max1,lm1.summary$adjr2[max1],col='red',cex=2,pch=20)
+
+plot(lm1.summary$cp,xlab="Number of variables",ylab="CP",type="l")
+min1 <- which.min(lm1.summary$cp)
+points(min1,lm1.summary$cp[min1],col='red',cex=2,pch=20)
+
+plot(lm1.summary$bic,xlab="Number of variables",ylab="BIC",type="l")
+min2 <- which.min(lm1.summary$bic)
+points(min2,lm1.summary$bic[min2],col='red',cex=2,pch=20)
+
+print.noquote(paste("When the number of variables reach to",max1,"adjusted R^2 increase to max"))
+print.noquote(paste("When the number of variables reach to",min1,"CP decrease to minimum"))
+print.noquote(paste("When the number of variables reach to",min2,"BIC decrease to minimum"))
+
+coef(lm1.full,min2)
+
+```
+
+## Problem Of Interest III.Revenue Prediction  
+
+### Data Preprocessing
+```{r,echo=FALSE,message=FALSE}
+library(MASS)
+library(class)
+library(e1071)
+library(randomForest)
+library(gbm)
+movie <- read.csv("genres_out.csv")
+```
+
+```{r,echo=FALSE}
+movie$revenue <- as.character(movie$revenue)
+movie = movie[movie$revenue!= " $-   ",]
+movie = movie[movie$budget!= 0,]
+movie$revenue <- as.factor(movie$revenue)
+movie$revenue <- as.numeric(gsub('[$,]', '', movie$revenue))
+movie$original_language <- as.character(movie$original_language)
+movie$original_language[movie$original_language !="en"]<- "Nonen"
+movie$original_language <- as.factor(movie$original_language)
+movie$margin<-(movie$revenue-movie$budget)/movie$budget
+for(i in 1:nrow(movie)){
+  if(movie$margin[i]<=1.5){movie$profit_level[i]<-"NO"}
+  else{movie$profit_level[i]<-"YES"}
+}
+movie$profit_level <- as.factor(movie$profit_level)
+movie$budget <- scale(movie$budget)
+movie$runtime <- scale(movie$runtime)
+```
+
+```{r,echo=FALSE}
+sub_movie <- movie[,c(2,6,12,17,18,19,20,21,22,23,24,25,27,28,29,30,31,32,33,34,35,36,38)]
+set.seed(1234)
+train <- sample(nrow(sub_movie),size = 0.75*nrow(sub_movie))
+test <- sub_movie[-train,]
+train <- sub_movie[train,]
+```
+
+### Logistic Regression
+
+```{r,echo=FALSE}
+glm.pro <- glm(profit_level~ ., data = sub_movie ,family = "binomial")
+```
+
+```{r,echo=FALSE}
+summary(glm.pro)
+```
+
+```{r,echo=FALSE}
+glm.new <- glm(profit_level~ budget+runtime+Science_Fiction+Mystery+Music+Action+Crime+Fantasy+Drama+History+Western+Horror, data = train ,family = "binomial")
+
+glm.probs1=predict(glm.new,test,type="response")
+glm.pred1<-rep("NO",808)
+glm.pred1[glm.probs1>0.5]="YES"
+```
+
+```{r,echo=FALSE}
+table(glm.pred1,test$profit_level)
+#overall fraction of correct predictions
+paste("Correction Rate for Logistic Regression:")
+mean(glm.pred1==test$profit_level)
+```
+
+```{r,echo=FALSE}
+#specificity
+specificity1<-(141)/(303+141)
+specificity1
+```
+
+### LDA
+```{r,echo=FALSE}
+lda.fit= lda(profit_level~ budget+runtime+Science_Fiction+Mystery+Music+Action+Crime+Fantasy+Drama+History+Western+Horror,data=train)
+lda.predict<-predict(lda.fit,test)
+lda.class<-lda.predict$class
+```
+
+```{r,echo=FALSE}
+table(lda.class,test$profit_level)
+#overall fraction of correct predictions
+paste("Correction Rate for LDA:")
+mean(lda.class==test$profit_level)
+```
+
+### QDA
+```{r,echo=FALSE}
+qda.fit=qda(profit_level~ budget+runtime+Science_Fiction+Mystery+Music+Action+Crime+Fantasy+Drama+History+Western+Horror,data=train)
+qda.predict<-predict(qda.fit,test)
+qda.class<-qda.predict$class
+```
+
+```{r,echo=FALSE}
+table(qda.class,test$profit_level)
+#overall fraction of correct predictions
+paste("Correction Rate for QDA:")
+mean(qda.class==test$profit_level)
+```
+
+### KNN
+```{r}
+train.x <- cbind(train[,c(1,3,4,7,8,9,13,14,15,16,19,21)])
+test.x<- cbind(test[,c(1,3,4,7,8,9,13,14,15,16,19,21)])
+train.profit_level<- train$profit_level
+```
+
+```{r}
+#k=1
+set.seed(111)
+knn.pred= knn(train.x,test.x,train.profit_level, k=1)
+table(knn.pred,test$profit_level)
+mean(knn.pred == test$profit_level)
+```
+
+```{r}
+#k=10
+set.seed(222)
+knn.pred= knn(train.x,test.x,train.profit_level, k=10)
+table(knn.pred,test$profit_level)
+mean(knn.pred == test$profit_level)
+```
+
+```{r}
+#k=100
+set.seed(333)
+knn.pred= knn(train.x,test.x,train.profit_level, k=100)
+table(knn.pred,test$profit_level)
+
+paste("Correction Rate for KNN with K=100:")
+mean(knn.pred == test$profit_level)
+```
+
+### SVM
+```{r}
+#linear
+set.seed(234)
+tune.out1<- tune(svm, profit_level~ budget+runtime+Science_Fiction+Mystery+Music+Action+Crime+Fantasy+Drama+History+Western+Horror,data=train,kernel="linear",ranges = list(cost=c(0.001,0.01,0.1,1,5,10)))
+summary(tune.out1)
+best_lin <- tune.out1$best.model
+```
+
+```{r}
+ypre_lin<-predict(best_lin,test)
+table(predict=ypre_lin, truth=test$profit_level)
+mean(ypre_lin == test$profit_level)
+```
+
+
+```{r}
+#radial
+set.seed(345)
+tune.out2 = tune(svm, profit_level~ budget+runtime+Science_Fiction+Mystery+Music+Action+Crime+Fantasy+Drama+History+Western+Horror,data=train, kernel = "radial", ranges = list(cost = c(0.01,0.1,1, 5), gamma = c(0.01, 0.1, 1, 5)))
+summary(tune.out2)
+best_rad <- tune.out2$best.model
+```
+
+```{r}
+ypre_rad<-predict(best_rad,test)
+table(predict=ypre_rad, truth=test$profit_level)
+mean(ypre_rad == test$profit_level)
+```
+
+
+```{r}
+#polynomial
+set.seed(456)
+tune.out3 = tune(svm, profit_level~ budget+runtime+Science_Fiction+Mystery+Music+Action+Crime+Fantasy+Drama+History+Western+Horror,data=train, kernel = "polynomial", ranges = list(cost = c(0.01,0.1, 1, 5), degree = c(2, 3, 4, 5)))
+summary(tune.out3)
+best_pol <- tune.out3$best.model
+```
+
+```{r}
+ypre_pol<-predict(best_pol,test)
+table(predict=ypre_pol, truth=test$profit_level)
+mean(ypre_pol == test$profit_level)
+```
+
+
+### Final
+```{r,echo=FALSE}
+glm.pred2<-rep("NO",808)
+glm.pred2[glm.probs1>0.55]="YES"
+```
+
+```{r,echo=FALSE}
+table(glm.pred2,test$profit_level)
+#overall fraction of correct predictions
+mean(glm.pred2==test$profit_level)
+```
+
+```{r,echo=FALSE}
+specificity2<-(65)/(379+65)
+specificity2
+```
+

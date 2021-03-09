@@ -418,9 +418,9 @@ mean(glm.pred1==test$profit_level)
 ```
 
 ```{r,echo=FALSE}
-#specificity
-specificity1<-(141)/(303+141)
-specificity1
+#FPR
+fpr1<-(141)/(303+141)
+fpr1
 ```
 
 ### LDA
@@ -543,7 +543,7 @@ mean(glm.pred2==test$profit_level)
 ```
 
 ```{r,echo=FALSE}
-specificity2<-(65)/(379+65)
-specificity2
+fpr2<-(65)/(379+65)
+fpr2
 ```
 

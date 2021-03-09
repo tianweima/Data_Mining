@@ -4,11 +4,6 @@ author: "Sophie Song(G38689625),Xiaofang Jiang(G33137378), Tianwe Ma(G49944026)"
 date: "3/25/2020"
 output: pdf_document
 ---
-# Author of Contribution
-
-`Sophie Song:` Average Vote Score Exploration, Movie Recommendation Modeling, Report  
-`Xiaofang Jiang:` Data Wrangling, Report  
-`Tianwei Ma:` Revenue Prediction Modeling, Report  
 
 # 1.Introduction  
 
